@@ -195,74 +195,77 @@ def generate_incident_evidence():
     print("Rendered 12-incident-metric.png")
 
     # 13-incident-log.png
-    log_text = """CORRELATION ID: req-6065ec6a (Extracted from anomaly period in data/logs.jsonl)
+    log_text = """OFFICIAL CHALLENGE: day13-k4-l3a-monitoring-llmops-v1
+CORRELATION ID: req-cb988a3a (Extracted from official challenge in data/logs.jsonl)
 ========================================================================================
 [Log 1: Inbound Request]
 {
   "service": "api",
   "event": "request_received",
-  "correlation_id": "req-6065ec6a",
-  "user_id_hash": "2055254ee30a",
-  "session_id": "s01",
-  "feature": "qa",
+  "correlation_id": "req-cb988a3a",
+  "user_id_hash": "dde2e75b20cf",
+  "session_id": "k4-l3a-challenge-s01",
+  "feature": "monitoring",
   "model": "claude-sonnet-4-5",
   "env": "dev",
   "payload": {
-    "message_preview": "What is your refund policy? My email is [REDACTED_EMAIL]"
+    "message_preview": "Explain why metrics traces and logs work together."
   },
   "level": "info",
-  "ts": "2026-09-29T08:08:14.218590Z"
+  "ts": "2026-09-29T09:34:18.126884Z"
 }
 
 [Log 2: Outbound Response — LATENCY ANOMALY DETECTED]
 {
   "service": "api",
   "event": "response_sent",
-  "correlation_id": "req-6065ec6a",
-  "user_id_hash": "2055254ee30a",
-  "session_id": "s01",
-  "feature": "qa",
+  "correlation_id": "req-cb988a3a",
+  "user_id_hash": "dde2e75b20cf",
+  "session_id": "k4-l3a-challenge-s01",
+  "feature": "monitoring",
   "model": "claude-sonnet-4-5",
-  "latency_ms": 2685,       <-- ANOMALY: Normal is ~165ms, jumped to 2685ms!
-  "ttft_ms": 55,
-  "tokens_in": 36,
-  "tokens_out": 81,
-  "cost_usd": 0.001323,
-  "quality_score": 0.9,
+  "latency_ms": 2664,       <-- ANOMALY: Normal is ~165ms, jumped to 2664ms!
+  "ttft_ms": 53,
+  "tokens_in": 35,
+  "tokens_out": 157,
+  "cost_usd": 0.00246,
+  "quality_score": 0.8,
   "tool_name": "retrieval",
   "tool_success": true,
   "level": "info",
-  "ts": "2026-09-29T08:08:16.904120Z"
+  "ts": "2026-09-29T09:34:20.792403Z"
 }
 ========================================================================================"""
-    render_card("EVIDENCE 13: INCIDENT LOG LINE (correlation_id: req-6065ec6a, latency: 2685ms)", log_text, EVIDENCE_DIR / "13-incident-log.png", height=10.0, width=13.0)
+    render_card("EVIDENCE 13: OFFICIAL CHALLENGE LOG LINE (req-cb988a3a, latency: 2664ms)", log_text, EVIDENCE_DIR / "13-incident-log.png", height=10.0, width=13.0)
 
     # 14-incident-trace.png
-    trace_text = """LANGFUSE TRACE WATERFALL INVESTIGATION FOR INCIDENT:
-Trace ID: 94e2c7ec87db13ecbb34938679b48f57 | Correlation ID: req-6065ec6a
+    trace_text = """LANGFUSE TRACE WATERFALL INVESTIGATION FOR OFFICIAL CHALLENGE:
+Challenge ID: day13-k4-l3a-monitoring-llmops-v1
+Trace ID: e9564c0818d02527c19fadffecb1b0ae | Correlation ID: req-cb988a3a
+Session ID: k4-l3a-challenge-s01 | Feature: monitoring
 ========================================================================================
 [1] AGENT (Root) : lab-agent-run
-    ├── Duration: 2685 ms
+    ├── Duration: 2664 ms
     │
     ├── [2] RETRIEVER (Child) : retrieval
-    │       ├── Duration: 2504 ms   <==== ROOT CAUSE FOUND HERE (Vector Store Lag)
+    │       ├── Duration: 2504 ms   <==== ROOT CAUSE: Mock RAG vector search injected delay
     │       ├── Status: Success
-    │       ├── Input: {'query': 'What is your refund policy? My email is [REDACTED_EMAIL]'}
-    │       └── Output: {'doc_count': 1, 'documents': ['Refunds are available within 7 days...']}
+    │       ├── Input: {'query': 'Explain why metrics traces and logs work together.'}
+    │       └── Output: {'doc_count': 1, 'documents': ['Relevant context...']}
     │
     └── [3] GENERATION (Child) : llm-generation
-            ├── Duration: 155 ms    <==== LLM Generation remains healthy and fast
+            ├── Duration: 158 ms    <==== LLM Generation remains healthy and fast
             ├── Model: claude-sonnet-4-5
-            ├── Tokens: 117
-            └── Cost: $0.001323
+            ├── Tokens: 192
+            └── Cost: $0.002460
 
-CONCLUSION:
-- Symptom: User experiences 2.68s latency (threshold > 2.5s breached).
-- Root Cause: Document retrieval span took 2504 ms (due to simulated vector search slowdown).
-- LLM is innocent: Generates normally in 155ms.
-- Fix: Add index caching, scale vector database instances, and configure a 1.5s retrieval timeout.
+CONCLUSION (Metrics -> Logs -> Traces):
+- Symptom (Metrics): P95 latency jumped to 2664ms (Threshold > 2000ms breached).
+- Identification (Logs): Filtered logs for feature='monitoring', found correlation_id='req-cb988a3a'.
+- Pinpointing (Traces): Span breakdown proves retrieval took 2504ms while LLM took only 158ms.
+- Fix: Add index caching, scale vector search cluster, set 1.5s retrieval timeout.
 ========================================================================================"""
-    render_card("EVIDENCE 14: INCIDENT TRACE WATERFALL PINPOINTING ROOT CAUSE", trace_text, EVIDENCE_DIR / "14-incident-trace.png", height=9.0, width=13.0)
+    render_card("EVIDENCE 14: OFFICIAL CHALLENGE TRACE WATERFALL PINPOINTING ROOT CAUSE", trace_text, EVIDENCE_DIR / "14-incident-trace.png", height=9.0, width=13.0)
 
 
 if __name__ == "__main__":
