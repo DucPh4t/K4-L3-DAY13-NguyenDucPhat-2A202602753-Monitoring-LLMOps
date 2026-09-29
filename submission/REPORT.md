@@ -8,8 +8,8 @@
 - **MSSV:** 2A202602753
 - **Lớp:** K4-L3A
 - **Repository URL:** https://github.com/DucPh4t/K4-L3-DAY13-NguyenDucPhat-2A202602753-Monitoring-LLMOps
-- **Commit SHA cuối:** `260528520635ebaa3ae529088c5724f56b62122f`
-- **Challenge ID:** day13-practice-rag_slow
+- **Commit SHA cuối:** `4441f6bd020e092f93f521169659754d181bbaf3`
+- **Challenge ID:** day13-k4-l3a-monitoring-llmops-v1
 - **Tên project Langfuse cá nhân:** `day13-k4-l3a-2A202602753`
 
 ## 2. Evidence index
@@ -86,12 +86,12 @@
 
 ## 7. Điều tra challenge
 
-- **Challenge ID:** `day13-practice-rag_slow`
-- **Khoảng thời gian điều tra:** 2026-09-29T08:08:10Z – 2026-09-29T08:08:25Z
-- **Triệu chứng từ metrics:** Dashboard Panel 1 ghi nhận Latency P95 tăng vọt từ 168ms lên 2685ms, vượt ngưỡng cảnh báo 2500ms và tiếp cận ranh giới vi phạm SLO.
-- **Log line và correlation ID liên quan:** Lọc `data/logs.jsonl` tìm thấy request bất thường có correlation ID `req-6065ec6a`, ghi nhận `latency_ms: 2685`, `tool_name: "retrieval"`, `tool_success: true`.
-- **Trace ID và span gây ảnh hưởng:** Mở trace `94e2c7ec87db13ecbb34938679b48f57` trên Langfuse. Span waterfall chỉ ra rõ ràng: root `lab-agent-run` mất 2685ms, trong đó span con `retrieval` mất tới 2504ms, trong khi span con `llm-generation` chỉ mất 155ms.
-- **Root cause:** Lỗi nghẽn cổ chai nằm ở khâu tìm kiếm tài liệu (vector store retrieval lag), không liên quan đến thời gian phản hồi của mô hình LLM.
+- **Challenge ID:** `day13-k4-l3a-monitoring-llmops-v1`
+- **Khoảng thời gian điều tra:** 2026-09-29T09:34:00Z – 2026-09-29T09:34:30Z
+- **Triệu chứng từ metrics:** Dashboard Panel 1 (Latency & TTFT) và Alert `high_api_latency_p95` ghi nhận Latency P95 tăng vọt từ ~165ms lên 2664ms, vượt ngưỡng 2000ms được chỉ định trong challenge contract.
+- **Log line và correlation ID liên quan:** Lọc `data/logs.jsonl` theo `feature: "monitoring"` tìm thấy request chính thức có `correlation_id: "req-cb988a3a"`, `session_id: "k4-l3a-challenge-s01"`, `user_id_hash: "dde2e75b20cf"`, ghi nhận `latency_ms: 2664`, `tool_name: "retrieval"`, `tool_success: true`.
+- **Trace ID và span gây ảnh hưởng:** Mở trace `e9564c0818d02527c19fadffecb1b0ae` trên Langfuse cá nhân (liên kết qua `correlation_id: "req-cb988a3a"`). Span waterfall chỉ ra rõ ràng: root `lab-agent-run` mất 2664ms, trong đó span con `retrieval` (type retriever) mất tới 2504ms, trong khi span con `llm-generation` chỉ mất 158ms.
+- **Root cause:** Lỗi nghẽn cổ chai nằm ở khâu tìm kiếm tài liệu (vector store retrieval lag mô phỏng), chiếm 94% tổng thời gian request, không liên quan đến thời gian phản hồi của mô hình LLM.
 - **Fix action:** Bổ sung cơ chế timeout 1.5s cho bước retrieval, nếu vượt quá thời gian sẽ tự động dùng cached documents; đồng thời kiểm tra lại chỉ mục và mở rộng tài nguyên vector database.
 - **Preventive measure:** Thiết lập Redis in-memory cache cho các câu hỏi phổ biến, thêm circuit breaker và tăng cường giám sát thời gian phản hồi riêng cho các lệnh gọi cơ sở dữ liệu vector.
 
