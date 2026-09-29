@@ -8,7 +8,7 @@
 - **MSSV:** 2A202602753
 - **Lớp:** K4-L3A
 - **Repository URL:** https://github.com/DucPh4t/K4-L3-DAY13-NguyenDucPhat-2A202602753-Monitoring-LLMOps
-- **Commit SHA cuối:** `b3cb6ac050867f1dddb6ee60f2037df73244b310`
+- **Commit SHA cuối:** `260528520635ebaa3ae529088c5724f56b62122f`
 - **Challenge ID:** day13-practice-rag_slow
 - **Tên project Langfuse cá nhân:** `day13-k4-l3a-2A202602753`
 
